@@ -8,8 +8,8 @@ class Book {
 
 class BookStorage {
 
-  addBookToStorage(book) {
-    let storage = JSON.parse(localStorage.getItem('books'));
+  static addBookToStorage(book) {
+    let storage = BookStorage.getBooks();// JSON.parse(localStorage.getItem('books'));
     if (storage === null) {
       storage = [];
     }
@@ -20,17 +20,29 @@ class BookStorage {
 
   }
 
-  getBooks() {
+  static displayBooks() {
+    let books = BookStorage.getBooks();
+    if (books != null) {
+      let ui = new UI();
+      ui.displayBooks(books);
+    }
+  }
+
+  static getBooks() {
     return JSON.parse(localStorage.getItem('books'));
   }
 
+  static hasBooks() {
+    return BookStorage.getBooks() != null;
+  }
 
-  removeBooks() {
+
+  static removeBooks() {
     localStorage.removeItem('books');
   }
 
-  removeBook(isbn) {
-    let storage = JSON.parse(localStorage.getItem('books'));
+  static removeBook(isbn) {
+    let storage = BookStorage.getBooks();// JSON.parse(localStorage.getItem('books'));
 
     if (storage != null) {
       for (var i = storage.length - 1; i >= 0; i--) {
@@ -128,7 +140,7 @@ class UI {
 const bookTable = document.getElementById('book-list');
 const submitBtn = document.getElementById('submit-btn');
 const clearBtn = document.getElementById('clear-btn');
-const storageObj = new BookStorage();
+//const storageObj = new BookStorage();
 const ui = new UI();
 
 setup();
@@ -137,14 +149,15 @@ function setup() {
   submitBtn.addEventListener('click', onAddBook);
   clearBtn.addEventListener('click', onClearStorage);
   bookTable.addEventListener('mouseup', onDeleteClicked)
+  document.addEventListener('DOMContentLoaded', BookStorage.displayBooks());
 
-  displayBooks();
+  // displayBooks();
 }
 
 function onAddBook(e) {
   if (ui.isDataLegit()) {
     const book = new Book(ui.titleInput.value, ui.authorInput.value, ui.isbnInput.value);
-    storageObj.addBookToStorage(book);
+    BookStorage.addBookToStorage(book);
     ui.displayBook(book);
     ui.clearFields();
     ui.addMessage('Book added', 'success');
@@ -156,17 +169,19 @@ function onAddBook(e) {
   e.preventDefault();
 }
 
-function displayBooks() {
-  let books = storageObj.getBooks();
-  if (books != null) {
-    ui.displayBooks(books);
-  }
-}
+// function displayBooks() {
+//   let books = BookStorage.getBooks();
+//   if (books != null) {
+//     ui.displayBooks(books);
+//   }
+// }
 
 function onClearStorage(e) {
-  if (confirm('Are you sure you want to clear all books?') === true) {
-    storageObj.removeBooks();
-    ui.clearBooks();
+  if (BookStorage.hasBooks) {
+    if (confirm('Are you sure you want to clear all books?') === true) {
+      BookStorage.removeBooks();
+      ui.clearBooks();
+    }
   }
   e.preventDefault()
 }
@@ -174,9 +189,11 @@ function onClearStorage(e) {
 function onDeleteClicked(e) {
   if (e.target.className === 'delete') {
     try {
-      var isbn = e.target.parentElement.parentElement.childNodes[2].innerText;
+      //var isbn = e.target.parentElement.parentElement.childNodes[2].innerText;
+      var isbn = e.target.parentElement.previousElementSibling.textContent;
+
       if (isbn != '') {
-        if (storageObj.removeBook(isbn) === true) {
+        if (BookStorage.removeBook(isbn) === true) {
           ui.clearBook(e.target.parentElement.parentElement);
         }
 
